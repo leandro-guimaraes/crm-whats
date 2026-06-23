@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/card";
 import { MessageSquare, CheckCircle, UsersRound } from "lucide-react";
 
-// `useSearchParams` opts the component out of static prerendering
-// unless wrapped in Suspense — same pattern as /login.
+// `useSearchParams` impede a pré-renderização estática do componente
+// a menos que esteja envolvido por um Suspense — mesmo padrão do /login.
 export default function SignupPage() {
   return (
     <Suspense fallback={null}>
@@ -28,11 +28,13 @@ export default function SignupPage() {
 
 function SignupPageInner() {
   const searchParams = useSearchParams();
-  // When the user lands here from `/join/<token>` we carry the
-  // invite token in the query so it survives the signup → email
-  // verification → redirect round-trip. `emailRedirectTo` below
-  // points back at /join/<token> so the user lands on the redeem
-  // step after verifying instead of being dropped on /dashboard.
+
+  // Quando o usuário chega aqui através de `/join/<token>`,
+  // mantemos o token do convite na URL para que ele sobreviva
+  // ao fluxo cadastro → verificação de e-mail → redirecionamento.
+  // O `emailRedirectTo` abaixo aponta novamente para /join/<token>,
+  // para que o usuário aceite o convite após verificar o e-mail,
+  // em vez de ser enviado para o dashboard.
   const inviteToken = searchParams.get("invite");
 
   const [fullName, setFullName] = useState("");
@@ -42,6 +44,7 @@ function SignupPageInner() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
   const supabase = createClient();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -49,21 +52,19 @@ function SignupPageInner() {
     setError(null);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      setError("As senhas não coincidem");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("A senha deve possuir pelo menos 6 caracteres");
       return;
     }
 
     setLoading(true);
 
-    // If we have an invite token, point Supabase's verification
-    // email back at the join page so the user can accept after
-    // verifying. Without a token, Supabase uses its default
-    // redirect (the app root).
+    // Se houver um token de convite, o e-mail de verificação
+    // retornará para a página de convite após a confirmação.
     const emailRedirectTo = inviteToken
       ? `${window.location.origin}/join/${encodeURIComponent(inviteToken)}`
       : undefined;
@@ -97,15 +98,19 @@ function SignupPageInner() {
             <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
               <CheckCircle className="h-6 w-6 text-primary" />
             </div>
+
             <CardTitle className="text-xl text-foreground">
-              Check your email
+              Verifique seu e-mail
             </CardTitle>
+
             <CardDescription className="text-muted-foreground">
-              We&apos;ve sent a confirmation link to{" "}
-              <span className="text-foreground">{email}</span>. Please check your
-              inbox and click the link to verify your account.
+              Enviamos um link de confirmação para{" "}
+              <span className="text-foreground">{email}</span>.
+              Verifique sua caixa de entrada e clique no link para
+              confirmar sua conta.
             </CardDescription>
           </CardHeader>
+
           <CardContent>
             <Link
               href={
@@ -118,7 +123,7 @@ function SignupPageInner() {
                 variant="outline"
                 className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
               >
-                Back to sign in
+                Voltar para o login
               </Button>
             </Link>
           </CardContent>
@@ -138,15 +143,20 @@ function SignupPageInner() {
               <MessageSquare className="h-6 w-6 text-primary" />
             )}
           </div>
+
           <CardTitle className="text-xl text-foreground">
-            {inviteToken ? "Create account & join" : "Create account"}
+            {inviteToken
+              ? "Criar conta e participar"
+              : "Criar conta"}
           </CardTitle>
+
           <CardDescription className="text-muted-foreground">
             {inviteToken
-              ? "Verify your email, then accept the invitation to join your team."
-              : "Get started with CRM Template for WhatsApp"}
+              ? "Confirme seu e-mail e depois aceite o convite para participar da equipe."
+              : "Comece agora com o CRM para WhatsApp"}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSignup} className="flex flex-col gap-4">
             {error && (
@@ -157,12 +167,13 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="fullName" className="text-muted-foreground">
-                Full name
+                Nome completo
               </Label>
+
               <Input
                 id="fullName"
                 type="text"
-                placeholder="John Doe"
+                placeholder="João da Silva"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
@@ -172,12 +183,13 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
-                Email
+                E-mail
               </Label>
+
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="voce@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -187,12 +199,13 @@ function SignupPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="password" className="text-muted-foreground">
-                Password
+                Senha
               </Label>
+
               <Input
                 id="password"
                 type="password"
-                placeholder="At least 6 characters"
+                placeholder="Mínimo de 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -201,13 +214,17 @@ function SignupPageInner() {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label htmlFor="confirmPassword" className="text-muted-foreground">
-                Confirm password
+              <Label
+                htmlFor="confirmPassword"
+                className="text-muted-foreground"
+              >
+                Confirmar senha
               </Label>
+
               <Input
                 id="confirmPassword"
                 type="password"
-                placeholder="Repeat your password"
+                placeholder="Repita sua senha"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
@@ -220,12 +237,12 @@ function SignupPageInner() {
               disabled={loading}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {loading ? "Criando conta..." : "Criar conta"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Already have an account?{" "}
+            Já possui uma conta?{" "}
             <Link
               href={
                 inviteToken
@@ -234,7 +251,7 @@ function SignupPageInner() {
               }
               className="text-primary hover:text-primary/80"
             >
-              Sign in
+              Entrar
             </Link>
           </p>
         </CardContent>

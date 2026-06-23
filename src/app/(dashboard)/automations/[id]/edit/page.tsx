@@ -19,19 +19,27 @@ export default function EditAutomationPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+
   const [initial, setInitial] = useState<BuilderInitial | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
+
     async function load() {
       const res = await fetch(`/api/automations/${id}`)
+
       if (!res.ok) {
-        if (!cancelled) setError(`Failed to load (${res.status})`)
+        if (!cancelled) {
+          setError(`Falha ao carregar (${res.status})`)
+        }
         return
       }
+
       const body = await res.json()
+
       if (cancelled) return
+
       setInitial({
         id: body.automation.id,
         name: body.automation.name ?? "",
@@ -42,7 +50,9 @@ export default function EditAutomationPage({
         steps: fromServerSteps((body.steps ?? []) as ServerStepNode[]),
       })
     }
+
     load()
+
     return () => {
       cancelled = true
     }
@@ -52,11 +62,12 @@ export default function EditAutomationPage({
     return (
       <div className="flex h-screen flex-col items-center justify-center gap-3">
         <p className="text-sm text-red-400">{error}</p>
+
         <button
           onClick={() => router.push("/automations")}
           className="text-sm text-primary hover:text-primary/80"
         >
-          Back to Automations
+          Voltar para Automações
         </button>
       </div>
     )

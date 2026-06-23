@@ -16,11 +16,11 @@ import {
 } from "@/components/ui/card";
 import { MessageSquare, UsersRound } from "lucide-react";
 
-// `useSearchParams` opts the component out of static prerendering
-// unless it sits under a Suspense boundary. We split the form into
-// a child component so the outer page can prerender the chrome
-// (background, card frame) while the form hydrates with the query
-// string on the client.
+// `useSearchParams` impede a pré-renderização estática do componente
+// a menos que ele esteja dentro de um limite Suspense. Dividimos o formulário
+// em um componente filho para que a página externa possa pré-renderizar
+// a estrutura visual (fundo, card) enquanto o formulário é carregado
+// no cliente com os parâmetros da URL.
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
@@ -31,15 +31,17 @@ export default function LoginPage() {
 
 function LoginPageInner() {
   const searchParams = useSearchParams();
-  // Forwarded from `/join/<token>` when the visitor already has an
-  // account. After a successful sign-in we send them to the join
-  // page to accept rather than to /dashboard.
+
+  // Encaminhado de `/join/<token>` quando o visitante já possui uma conta.
+  // Após o login bem-sucedido, enviamos o usuário para a página de convite
+  // para aceitá-lo, em vez de redirecionar para /dashboard.
   const inviteToken = searchParams.get("invite");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
   const router = useRouter();
   const supabase = createClient();
 
@@ -77,15 +79,18 @@ function LoginPageInner() {
               <MessageSquare className="h-6 w-6 text-primary" />
             )}
           </div>
+
           <CardTitle className="text-xl text-foreground">
-            {inviteToken ? "Sign in to accept" : "Welcome back"}
+            {inviteToken ? "Entrar para aceitar o convite" : "Bem-vindo(a)"}
           </CardTitle>
+
           <CardDescription className="text-muted-foreground">
             {inviteToken
-              ? "Sign in and we'll take you to the invitation."
-              : "Sign in to your account"}
+              ? "Faça login e levaremos você até o convite."
+              : "Entre na sua conta"}
           </CardDescription>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleLogin} className="flex flex-col gap-4">
             {error && (
@@ -96,12 +101,13 @@ function LoginPageInner() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="email" className="text-muted-foreground">
-                Email
+                E-mail
               </Label>
+
               <Input
                 id="email"
                 type="email"
-                placeholder="you@example.com"
+                placeholder="voce@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -112,19 +118,21 @@ function LoginPageInner() {
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password" className="text-muted-foreground">
-                  Password
+                  Senha
                 </Label>
+
                 <Link
                   href="/forgot-password"
                   className="text-sm text-primary hover:text-primary/80"
                 >
-                  Forgot password?
+                  Esqueceu sua senha?
                 </Link>
               </div>
+
               <Input
                 id="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder="Digite sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -137,12 +145,12 @@ function LoginPageInner() {
               disabled={loading}
               className="mt-2 h-10 w-full bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? "Entrando..." : "Entrar"}
             </Button>
           </form>
 
           <p className="mt-6 text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{" "}
+            Não possui uma conta?{" "}
             <Link
               href={
                 inviteToken
@@ -151,7 +159,7 @@ function LoginPageInner() {
               }
               className="text-primary hover:text-primary/80"
             >
-              Create account
+              Criar conta
             </Link>
           </p>
         </CardContent>

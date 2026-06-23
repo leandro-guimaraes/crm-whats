@@ -14,10 +14,10 @@ import { useBroadcastSending } from '@/hooks/use-broadcast-sending';
 import { Check } from 'lucide-react';
 
 const steps = [
-  { label: 'Template', key: 'template' },
-  { label: 'Audience', key: 'audience' },
-  { label: 'Personalize', key: 'personalize' },
-  { label: 'Send', key: 'send' },
+  { label: 'Modelo', key: 'template' },
+  { label: 'Público', key: 'audience' },
+  { label: 'Personalizar', key: 'personalize' },
+  { label: 'Enviar', key: 'send' },
 ] as const;
 
 export default function NewBroadcastPage() {
@@ -61,26 +61,28 @@ export default function NewBroadcastPage() {
       });
       router.push(`/broadcasts/${broadcastId}`);
     } catch (err) {
-      // Previously swallowed with console.error — the wizard would
-      // just no-op, leaving the user confused. Surface the reason.
-      const message = err instanceof Error ? err.message : 'Broadcast failed';
-      console.error('Broadcast failed:', err);
+      // Antes era ignorado com console.error — o assistente
+      // simplesmente não fazia nada, deixando o usuário confuso.
+      // Agora exibimos o motivo do erro.
+      const message = err instanceof Error ? err.message : 'Falha no disparo';
+      console.error('Falha no disparo:', err);
       toast.error(message);
     }
   }
 
   /**
-   * Writes a draft broadcast row — no recipients, no sending. The user
-   * can revisit it via the list page to finish the flow later. We
-   * don't persist the in-progress audience/variable config here
-   * because the current schema doesn't carry it past `audience_filter`
-   * and `template_variables`; those are enough for the user to
-   * recognize the draft but not to exactly round-trip into the wizard.
-   * A full resume-draft UX is a future polish.
+   * Salva um rascunho do disparo — sem destinatários e sem envio.
+   * O usuário pode voltar posteriormente pela lista de disparos
+   * para concluir o processo. Não persistimos aqui as configurações
+   * em andamento de público/variáveis porque o schema atual não
+   * armazena tudo além de `audience_filter` e `template_variables`.
+   * Essas informações são suficientes para identificar o rascunho,
+   * mas não para restaurar exatamente o assistente. Uma experiência
+   * completa de retomada de rascunho pode ser implementada futuramente.
    */
   async function handleSaveDraft() {
     if (!template || !name.trim()) {
-      toast.error('Give the broadcast a name before saving a draft.');
+      toast.error('Dê um nome ao disparo antes de salvar o rascunho.');
       return;
     }
     const supabase = createClient();
@@ -89,11 +91,11 @@ export default function NewBroadcastPage() {
     } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) {
-      toast.error('Not signed in.');
+      toast.error('Usuário não autenticado.');
       return;
     }
     if (!accountId) {
-      toast.error('Your profile is not linked to an account.');
+      toast.error('Seu perfil não está vinculado a uma conta.');
       return;
     }
 
@@ -102,7 +104,7 @@ export default function NewBroadcastPage() {
       account_id: accountId,
       name: name.trim(),
       template_name: template.name,
-      template_language: template.language ?? 'en_US',
+      template_language: template.language ?? 'pt_BR',
       template_variables: variables,
       audience_filter: {
         type: audience.type,
@@ -118,24 +120,24 @@ export default function NewBroadcastPage() {
     });
 
     if (error) {
-      toast.error(`Failed to save draft: ${error.message}`);
+      toast.error(`Falha ao salvar rascunho: ${error.message}`);
       return;
     }
-    toast.success('Draft saved');
+    toast.success('Rascunho salvo');
     router.push('/broadcasts');
   }
 
   return (
     <div className="mx-auto max-w-3xl space-y-8">
-      {/* Header */}
+      {/* Cabeçalho */}
       <div>
-        <h1 className="text-2xl font-bold text-foreground">New Broadcast</h1>
+        <h1 className="text-2xl font-bold text-foreground">Novo Disparo</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Create and send a broadcast message to your contacts.
+          Crie e envie uma mensagem em massa para seus contatos.
         </p>
       </div>
 
-      {/* Step Indicator */}
+      {/* Indicador de Etapas */}
       <div className="flex items-center justify-between">
         {steps.map((step, index) => {
           const isActive = index === currentStep;
@@ -175,7 +177,7 @@ export default function NewBroadcastPage() {
         })}
       </div>
 
-      {/* Step Content */}
+      {/* Conteúdo da Etapa */}
       <div className="relative min-h-[400px]">
         <div
           className="transition-all duration-300 ease-in-out"

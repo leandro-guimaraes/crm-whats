@@ -8,16 +8,23 @@ import {
   type BuilderInitial,
   type BuilderStep,
 } from "@/components/automations/automation-builder"
-import { AUTOMATION_TEMPLATES, type TemplateSlug } from "@/lib/automations/templates"
-import type { AutomationStepType, AutomationTriggerType } from "@/types"
+import {
+  AUTOMATION_TEMPLATES,
+  type TemplateSlug,
+} from "@/lib/automations/templates"
+import type {
+  AutomationStepType,
+  AutomationTriggerType,
+} from "@/types"
 
-export default function NewAutomationPage() {
+export default function NovaAutomacaoPage() {
   const params = useSearchParams()
   const template = params.get("template") as TemplateSlug | null
 
   const initial: BuilderInitial = useMemo(() => {
     if (template && AUTOMATION_TEMPLATES[template]) {
       const t = AUTOMATION_TEMPLATES[template]
+
       const steps = expandFromSeeds(
         t.steps.map((seed, idx) => ({
           index: idx,
@@ -27,6 +34,7 @@ export default function NewAutomationPage() {
           parent_index: seed.parent_index ?? null,
         })),
       )
+
       return {
         name: t.name,
         description: t.description,
@@ -36,6 +44,7 @@ export default function NewAutomationPage() {
         steps,
       }
     }
+
     return {
       name: "",
       description: "",
@@ -66,25 +75,42 @@ function uid(): string {
   )
 }
 
-/** Template seeds are flat with parent_index references. Expand into the
- *  builder's nested tree, preserving order within each scope. */
+/**
+ * Os templates são armazenados de forma linear utilizando referências
+ * parent_index. Esta função converte a estrutura para a árvore aninhada
+ * utilizada pelo construtor de automações, preservando a ordem dentro
+ * de cada nível.
+ */
 function expandFromSeeds(rows: SeedRow[]): BuilderStep[] {
   const nodes: BuilderStep[] = rows.map((r) => ({
     cid: uid(),
     step_type: r.step_type,
     step_config: r.step_config,
     branches:
-      r.step_type === "condition" ? { yes: [], no: [] } : undefined,
+      r.step_type === "condition"
+        ? { yes: [], no: [] }
+        : undefined,
   }))
+
   const roots: BuilderStep[] = []
+
   rows.forEach((r, i) => {
     if (r.parent_index == null) {
       roots.push(nodes[i])
       return
     }
+
     const parent = nodes[r.parent_index]
-    if (!parent.branches) parent.branches = { yes: [], no: [] }
+
+    if (!parent.branches) {
+      parent.branches = {
+        yes: [],
+        no: [],
+      }
+    }
+
     parent.branches[r.branch ?? "yes"].push(nodes[i])
   })
+
   return roots
 }

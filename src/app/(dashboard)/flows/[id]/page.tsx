@@ -9,80 +9,81 @@ import { FlowEditorShell } from "@/components/flows/flow-editor-shell";
 import type { FlowRow, FlowNodeRow } from "@/lib/flows/types";
 
 /**
- * Flow editor shell.
+ * Shell do editor de fluxo.
  *
- * Loads `{flow, nodes}` from `/api/flows/[id]` and hands it to
- * `<FlowBuilder>`. Owns the loading/error state so the builder can
- * focus purely on editing.
+ * Carrega `{flow, nodes}` de `/api/flows/[id]` e repassa para
+ * `<FlowBuilder>`. Gerencia o estado de carregamento/erro para que
+ * o builder possa se concentrar exclusivamente na edição.
  *
- * Open to every authenticated user — the beta gate that previously
- * 404'd non-beta accounts was removed in PR #134. The API still
- * 404s on a flow id the caller doesn't own (RLS), which becomes the
- * "Flow not found" state below.
+ * Aberto para todo usuário autenticado — o bloqueio de beta que
+ * anteriormente retornava 404 para contas não-beta foi removido no
+ * PR #134. A API ainda retorna 404 para um id de fluxo que o
+ * chamador não possui (RLS), o que resulta no estado
+ * "Fluxo não encontrado" abaixo.
  */
-export default function FlowEditorPage() {
+export default function PaginaEditorFluxo() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
 
-  const [flow, setFlow] = useState<FlowRow | null>(null);
-  const [nodes, setNodes] = useState<FlowNodeRow[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [notFound, setNotFound] = useState(false);
+  const [fluxo, setFluxo] = useState<FlowRow | null>(null);
+  const [nos, setNos] = useState<FlowNodeRow[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [naoEncontrado, setNaoEncontrado] = useState(false);
 
   useEffect(() => {
     if (!params.id) return;
-    let cancelled = false;
+    let cancelado = false;
     (async () => {
       try {
         const res = await fetch(`/api/flows/${params.id}`);
         if (res.status === 404) {
-          if (!cancelled) setNotFound(true);
+          if (!cancelado) setNaoEncontrado(true);
           return;
         }
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
+        if (!res.ok) throw new Error(`Falhou: ${res.status}`);
         const json = (await res.json()) as {
           flow: FlowRow;
           nodes: FlowNodeRow[];
         };
-        if (!cancelled) {
-          setFlow(json.flow);
-          setNodes(json.nodes ?? []);
+        if (!cancelado) {
+          setFluxo(json.flow);
+          setNos(json.nodes ?? []);
         }
       } catch (err) {
-        if (!cancelled) {
+        if (!cancelado) {
           console.error(err);
-          toast.error("Couldn't load flow.");
+          toast.error("Não foi possível carregar o fluxo.");
         }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelado) setCarregando(false);
       }
     })();
     return () => {
-      cancelled = true;
+      cancelado = true;
     };
   }, [params.id]);
 
-  if (loading) {
+  if (carregando) {
     return (
       <div className="flex h-full items-center justify-center">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
-  if (notFound || !flow) {
+  if (naoEncontrado || !fluxo) {
     return (
       <div className="flex h-full flex-col items-center justify-center gap-3">
-        <p className="text-sm text-muted-foreground">Flow not found.</p>
+        <p className="text-sm text-muted-foreground">Fluxo não encontrado.</p>
         <button
           type="button"
           onClick={() => router.push("/flows")}
           className="text-sm text-primary hover:opacity-80"
         >
-          ← Back to flows
+          ← Voltar para fluxos
         </button>
       </div>
     );
   }
 
-  return <FlowEditorShell initialFlow={flow} initialNodes={nodes} />;
+  return <FlowEditorShell initialFlow={fluxo} initialNodes={nos} />;
 }
